@@ -6,7 +6,7 @@ class State {
 	/**
 	 * @var \ElggEntity[] keys are GUID (for uniqueness)
 	 */
-	static $entities_to_keep_private = [];
+	static $entities_quarantined = [];
 
 	/**
 	 * @var \ElggUser[] keys are GUID (for uniqueness)

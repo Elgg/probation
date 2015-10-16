@@ -2,12 +2,16 @@
 
 namespace ElggProbation;
 
-const PROBATIONARY = 'probationary';
+const PLUGIN_ID = 'probation';
+const QUARANTINED = 'quarantined';
 const ON_PROBATION = 'on_probation';
 const ORIGINAL_ACCESS_ID = 'original_access_id';
 
+const QUARANTINE_CONTENT = 'quarantine_content';
+const QUARANTINE_PRIVATE = 'quarantine_private';
+
 // testing
-const FORCE_PROBATION = false;
+const FORCE_PROBATION = true;
 
 require __DIR__ . '/lib/events.php';
 require __DIR__ . '/lib/hooks.php';
@@ -25,8 +29,10 @@ function init() {
 		elgg_register_plugin_hook_handler('register', 'menu:title', __NAMESPACE__ . '\\hook_register_title_menu', 999);
 
 		// mark content as probationary and make it private.
-		elgg_register_event_handler('create', 'object', __NAMESPACE__ . '\\event_create_object');
-		elgg_register_event_handler('update', 'object', __NAMESPACE__ . '\\event_update_object');
+		if (elgg_get_plugin_setting(QUARANTINE_CONTENT, PLUGIN_ID)) {
+			elgg_register_event_handler('create', 'object', __NAMESPACE__ . '\\event_create_object');
+			elgg_register_event_handler('update', 'object', __NAMESPACE__ . '\\event_update_object');
+		}
 	}
 
 	if (elgg_is_admin_logged_in()) {

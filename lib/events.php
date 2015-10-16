@@ -16,18 +16,23 @@ function event_create_object($event, $type, \ElggObject $object) {
 		return true;
 	}
 
-	$object->{PROBATIONARY} = '1';
-	system_message(elgg_echo('probation:moderated'));
+	$object->{QUARANTINED} = '1';
 
-	State::$entities_to_keep_private[$object->guid] = $object;
+	if (elgg_get_plugin_setting(QUARANTINE_PRIVATE, PLUGIN_ID)) {
+		system_message(elgg_echo('probation:moderated:private'));
+	} else {
+		system_message(elgg_echo('probation:moderated'));
+	}
+
+	State::$entities_quarantined[$object->guid] = $object;
 }
 
 function event_update_object($event, $type, \ElggObject $object) {
-	if (!State::$handle_updates || !$object->{PROBATIONARY}) {
+	if (!State::$handle_updates || !$object->{QUARANTINED}) {
 		return;
 	}
 
-	State::$entities_to_keep_private[$object->guid] = $object;
+	State::$entities_quarantined[$object->guid] = $object;
 }
 
 function event_shutdown() {
@@ -39,18 +44,26 @@ function event_shutdown() {
 
 	$ia = elgg_set_ignore_access(true);
 
-	foreach (State::$entities_to_keep_private as $entity) {
+	$force_private = elgg_get_plugin_setting(QUARANTINE_PRIVATE, PLUGIN_ID);
+
+	foreach (State::$entities_quarantined as $entity) {
 		if ($entity->{ORIGINAL_ACCESS_ID} === null || ($entity->access_id != ACCESS_PRIVATE)) {
 			$entity->{ORIGINAL_ACCESS_ID} = $entity->access_id;
 		}
-		$entity->access_id = ACCESS_PRIVATE;
+
+		if ($force_private) {
+			$entity->access_id = ACCESS_PRIVATE;
+		} elseif ($entity->access_id == ACCESS_PUBLIC) {
+			$entity->access_id = ACCESS_LOGGED_IN;
+		}
+
 		$entity->save();
 	}
 
 	foreach (State::$users_leaving_probation as $user) {
 		$options = [
 			'owner_guid' => $user->guid,
-			'metadata_name' => PROBATIONARY,
+			'metadata_name' => QUARANTINED,
 			'metadata_value' => '1',
 			'limit' => 0,
 		];

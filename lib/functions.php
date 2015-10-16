@@ -26,9 +26,9 @@ function remove_probation(\ElggUser $user) {
 }
 
 function approve_content(\ElggObject $object) {
-	$object->deleteMetadata(PROBATIONARY);
+	$object->deleteMetadata(QUARANTINED);
 
-	$access_id = $object->original_access_id;
+	$access_id = $object->{ORIGINAL_ACCESS_ID};
 	// delete it so our update handler doesn't re-set it
 	$object->deleteMetadata(ORIGINAL_ACCESS_ID);
 
@@ -43,5 +43,6 @@ function approve_content(\ElggObject $object) {
 		$access_id = $object->access_id;
 	}
 
+	// just in case plugins look at river.access_id
 	update_river_access_by_object($object->guid, $access_id);
 }

@@ -63,7 +63,7 @@ function hook_enqueue_notification($hook, $type, $value, $params) {
 		return;
 	}
 
-	if ($object->{PROBATIONARY}) {
+	if ($object->{QUARANTINED}) {
 		return false;
 	}
 }
@@ -76,7 +76,7 @@ function hook_register_menu_topbar($hook, $type, $items, $params) {
 
 function hook_prepare_entity_menu($hook, $type, $menus, $params) {
 	$entity = elgg_extract('entity', $params);
-	if (!$entity->{PROBATIONARY}) {
+	if (!$entity->{QUARANTINED}) {
 		return;
 	}
 
